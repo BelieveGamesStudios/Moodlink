@@ -86,8 +86,10 @@ export const getMoodCheckins = async (userId, limit = 30) => {
   }
 }
 
-export const getMoodWallPosts = async (filter = 'all', limit = 50) => {
+export const getMoodWallPosts = async (filter = 'all', limit = 100) => {
   try {
+    // Use the encouragement_count column that's auto-updated by the trigger
+    // This is much faster than counting manually
     let query = supabase
       .from('mood_wall_posts')
       .select('*')
@@ -118,25 +120,10 @@ export const getMoodWallPosts = async (filter = 'all', limit = 50) => {
 
     if (error) throw error
 
-    // Get encouragement counts for each post
-    const postIds = data.map(p => p.id)
-    const { data: encouragements } = await supabase
-      .from('encouragements')
-      .select('to_post_id')
-      .in('to_post_id', postIds)
-
-    // Count encouragements per post
-    const encouragementCounts = {}
-    if (encouragements) {
-      encouragements.forEach(enc => {
-        encouragementCounts[enc.to_post_id] = (encouragementCounts[enc.to_post_id] || 0) + 1
-      })
-    }
-
-    // Format the data
-    const formatted = data.map(post => ({
+    // Format the data - use the encouragement_count from the database (updated by trigger)
+    const formatted = (data || []).map(post => ({
       ...post,
-      encouragement_count: encouragementCounts[post.id] || post.encouragement_count || 0,
+      encouragement_count: post.encouragement_count || 0,
       timeAgo: formatDistanceToNow(new Date(post.timestamp), { addSuffix: true }),
     }))
 

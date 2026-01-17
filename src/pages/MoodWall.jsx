@@ -28,6 +28,7 @@ export default function MoodWall() {
 
   useEffect(() => {
     loadPosts()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedFilter])
 
   const loadPosts = async () => {
@@ -67,12 +68,26 @@ export default function MoodWall() {
       
       <main className="flex-grow container mx-auto px-4 py-8">
         <div className="max-w-6xl mx-auto">
-          <h1 className="text-4xl font-bold text-center text-gray-800 mb-8">
-            Mood Wall
-          </h1>
-          <p className="text-center text-gray-600 mb-8">
-            See how others are feeling and send support
-          </p>
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <h1 className="text-4xl font-bold text-gray-800">
+                Mood Wall
+              </h1>
+              <p className="text-gray-600 mt-2">
+                See how others are feeling and send support
+              </p>
+            </div>
+            <button
+              onClick={loadPosts}
+              disabled={loading}
+              className="px-4 py-2 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              <span>Refresh</span>
+            </button>
+          </div>
 
           {/* Filters */}
           <div className="mb-6 overflow-x-auto">
