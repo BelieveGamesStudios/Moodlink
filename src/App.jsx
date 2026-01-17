@@ -6,6 +6,7 @@ import CheckIn from './pages/CheckIn'
 import AISupport from './pages/AISupport'
 import MoodWall from './pages/MoodWall'
 import Dashboard from './pages/Dashboard'
+import Settings from './pages/Settings'
 import Login from './components/auth/Login'
 import Signup from './components/auth/Signup'
 import AuthCallback from './components/auth/AuthCallback'
@@ -46,6 +47,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Dashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/settings"
+              element={
+                <ProtectedRoute>
+                  <Settings />
                 </ProtectedRoute>
               }
             />

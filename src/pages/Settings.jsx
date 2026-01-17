@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { useToast } from '../contexts/ToastContext'
 import Navigation from '../components/layout/Navigation'
@@ -79,7 +79,7 @@ export default function Settings() {
               {isGuest && (
                 <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
                   <p className="text-sm text-yellow-800">
-                    You're using guest mode. <a href="/signup" className="font-medium underline">Sign up</a> to create a permanent account and save your data.
+                    You're using guest mode. <Link to="/signup" className="font-medium underline">Sign up</Link> to create a permanent account and save your data.
                   </p>
                 </div>
               )}

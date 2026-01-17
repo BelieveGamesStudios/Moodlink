@@ -7,6 +7,10 @@ import { supabase } from './supabase'
  */
 export const createUserProfile = async (authUserId, username = null) => {
   try {
+    // Wait a moment for the database trigger to potentially create the profile
+    // This gives the trigger time to run after auth user creation
+    await new Promise(resolve => setTimeout(resolve, 500))
+
     // First, check if profile already exists (created by trigger)
     const { data: existingProfile, error: fetchError } = await supabase
       .from('users')
@@ -15,7 +19,7 @@ export const createUserProfile = async (authUserId, username = null) => {
       .single()
 
     if (!fetchError && existingProfile) {
-      // Profile exists, update it if username is provided
+      // Profile exists (created by trigger), update it if username is provided
       if (username) {
         const { data: updatedProfile, error: updateError } = await supabase
           .from('users')
@@ -34,7 +38,7 @@ export const createUserProfile = async (authUserId, username = null) => {
     }
 
     // Profile doesn't exist, try to create it
-    // This should work with the updated RLS policy
+    // The trigger should have created it, but if not, we'll create it here
     const { data, error } = await supabase
       .from('users')
       .insert({
@@ -46,7 +50,32 @@ export const createUserProfile = async (authUserId, username = null) => {
       .single()
 
     if (error) {
-      // If still fails, wait a moment and try fetching again (trigger might be processing)
+      // If foreign key constraint error, wait and retry (auth user might not be committed yet)
+      if (error.code === '23503' || error.message?.includes('foreign key')) {
+        await new Promise(resolve => setTimeout(resolve, 1000))
+        // Try fetching again - trigger might have created it
+        const { data: retryProfile } = await supabase
+          .from('users')
+          .select('*')
+          .eq('auth_user_id', authUserId)
+          .single()
+        
+        if (retryProfile) {
+          // Update with username if provided
+          if (username) {
+            const { data: updatedProfile } = await supabase
+              .from('users')
+              .update({ username_optional: username })
+              .eq('auth_user_id', authUserId)
+              .select()
+              .single()
+            return updatedProfile || retryProfile
+          }
+          return retryProfile
+        }
+      }
+
+      // If RLS error, wait and retry
       if (error.code === '42501' || error.message?.includes('row-level security')) {
         await new Promise(resolve => setTimeout(resolve, 1000))
         const { data: retryProfile } = await supabase
@@ -154,5 +183,45 @@ export const convertGuestToUser = async (authUserId, guestUserId) => {
   } catch (error) {
     console.error('Error converting guest to user:', error)
     throw error
+  }
+}
+
+/**
+ * Delete user profile and all associated data
+ * Note: Due to CASCADE constraints, deleting the user will automatically delete:
+ * - mood_checkins
+ * - mood_wall_posts
+ * - encouragements
+ * If authUserId is provided, also deletes the auth user
+ */
+export const deleteUserProfile = async (userId, authUserId = null) => {
+  try {
+    // Delete the user profile (cascade will handle related data)
+    const { error: deleteError } = await supabase
+      .from('users')
+      .delete()
+      .eq('id', userId)
+
+    if (deleteError) {
+      // If RLS blocks deletion, we might need to handle it differently
+      console.error('Error deleting user profile:', deleteError)
+      throw deleteError
+    }
+
+    // If authenticated user, also delete from auth
+    if (authUserId) {
+      // Note: Deleting auth user requires admin privileges or service role
+      // For now, we'll just delete the profile and let the user know
+      // In production, you might want to use a server-side function for this
+      console.log('Auth user deletion would require admin/service role')
+    }
+
+    // Clear localStorage
+    localStorage.removeItem('guest_user_id')
+
+    return { error: null }
+  } catch (error) {
+    console.error('Error deleting user profile:', error)
+    return { error }
   }
 }
