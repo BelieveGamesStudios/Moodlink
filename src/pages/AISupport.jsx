@@ -101,7 +101,7 @@ export default function AISupport() {
               onClick={() => navigate('/moodwall')}
               className="flex-1 py-3 px-6 bg-purple-600 text-white rounded-full font-semibold hover:bg-purple-700 transition-all transform hover:scale-105"
             >
-              Continue to Mood Wall
+              View Mood Wall
             </button>
           </div>
 

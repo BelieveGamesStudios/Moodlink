@@ -36,8 +36,10 @@ export default function MoodWall() {
     const { data, error } = await getMoodWallPosts(selectedFilter)
     
     if (error) {
+      console.error('Error loading mood wall posts:', error)
       showToast('Failed to load mood wall', 'error')
     } else {
+      console.log('Loaded mood wall posts:', data?.length || 0)
       setPosts(data || [])
     }
     setLoading(false)

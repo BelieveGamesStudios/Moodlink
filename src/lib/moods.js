@@ -53,7 +53,7 @@ export const createMoodCheckin = async (userId, moodData) => {
 
     // If anonymous, also create mood wall post
     if (isAnonymous) {
-      const { error: wallError } = await supabase
+      const { data: wallPost, error: wallError } = await supabase
         .from('mood_wall_posts')
         .insert({
           user_id: userId,
@@ -62,10 +62,20 @@ export const createMoodCheckin = async (userId, moodData) => {
           message_optional: notes || null,
           timestamp: new Date().toISOString(),
         })
+        .select()
+        .single()
 
       if (wallError) {
         console.error('Error creating mood wall post:', wallError)
-        // Don't throw - check-in was successful
+        console.error('Wall post error details:', {
+          code: wallError.code,
+          message: wallError.message,
+          details: wallError.details,
+          hint: wallError.hint
+        })
+        // Don't throw - check-in was successful, but log the error
+      } else {
+        console.log('Mood wall post created successfully:', wallPost)
       }
     }
 

@@ -71,7 +71,12 @@ export default function CheckIn() {
       return
     }
 
-    showToast('Check-in saved!', 'success')
+    // Show success message
+    if (isAnonymous) {
+      showToast('Check-in saved! Your mood has been shared on the mood wall.', 'success')
+    } else {
+      showToast('Check-in saved!', 'success')
+    }
     
     // Navigate to AI response page with mood data
     navigate('/support', {
