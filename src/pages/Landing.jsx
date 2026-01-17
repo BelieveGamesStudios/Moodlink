@@ -1,13 +1,33 @@
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import Navigation from '../components/layout/Navigation'
 import Footer from '../components/layout/Footer'
 import { useAuth } from '../contexts/AuthContext'
+import { useToast } from '../contexts/ToastContext'
 
 export default function Landing() {
   const { signInAsGuest } = useAuth()
+  const { showToast } = useToast()
+  const navigate = useNavigate()
 
   const handleGuestMode = async () => {
-    await signInAsGuest()
+    try {
+      const { profile, error } = await signInAsGuest()
+      
+      if (error) {
+        console.error('Guest sign in error:', error)
+        showToast('Failed to continue as guest. Please try again.', 'error')
+        return
+      }
+      
+      if (profile) {
+        showToast('Welcome! You can now check in with your mood.', 'success')
+        // Navigate to check-in page or dashboard
+        navigate('/checkin')
+      }
+    } catch (error) {
+      console.error('Error in handleGuestMode:', error)
+      showToast('Something went wrong. Please try again.', 'error')
+    }
   }
 
   return (
