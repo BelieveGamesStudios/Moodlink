@@ -64,7 +64,9 @@ export default function CheckIn() {
     })
 
     if (error) {
-      showToast('Failed to save check-in. Please try again.', 'error')
+      console.error('Check-in error:', error)
+      const errorMessage = error.message || 'Failed to save check-in. Please try again.'
+      showToast(errorMessage, 'error')
       setLoading(false)
       return
     }

@@ -42,7 +42,14 @@ export const createMoodCheckin = async (userId, moodData) => {
       .select()
       .single()
 
-    if (checkinError) throw checkinError
+    if (checkinError) {
+      console.error('Check-in error details:', checkinError)
+      // Provide more specific error message
+      if (checkinError.code === '42501' || checkinError.message?.includes('row-level security')) {
+        throw new Error('Permission denied. Please make sure you are signed in or using guest mode.')
+      }
+      throw checkinError
+    }
 
     // If anonymous, also create mood wall post
     if (isAnonymous) {
